@@ -1,0 +1,206 @@
+/* Paleta y utilidades */
+:root {
+  --primary-color: rgb(155, 1, 129) !important;
+  --secondary-color: #ffffff;
+  --light-gray: #f0f2f5;
+  --dark-gray: #344767;
+  /* --dark-gradient: linear-gradient(135deg, #344767, #6b7280); */
+  --white: #ffffff;
+  --success-color: #22c55e;
+  --danger-color: #ef4444;
+  --bs-primary: #c475e3;
+  --bs-primary-rgb: 3, 153, 253;
+
+  --dark-gradient: linear-gradient(135deg, #1f0125 0%, #20092c 50%, #371330 100%);
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--light-gray);
+}
+
+.color_fondo {
+  background-color: var(--light-gray);
+}
+
+.bg-primary-def, .btn-primary-def{
+  background-color: var(--primary-color)!important;
+}
+.btn.btn-primary-def:hover{
+  transform: none;
+  background-color: #750161!important;
+}
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  height: calc(100vh - 2rem); /* espacio arriba/abajo */
+  background: var(--dark-gradient);
+  color: var(--white);
+  border-radius: 0.75rem;
+  margin: 1rem; /* separación del borde */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 transparent;
+}
+
+/* Scrollbar estilizado */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+/* Links principales */
+.sidebar .nav-link {
+  color: #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.6rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: left;
+  transition: all 0.2s ease;
+}
+
+.sidebar .nav-link.fontSize{
+  font-size: 0.9rem;
+}
+
+.sidebar .nav-link .material-icons {
+  margin-right: 1rem;
+  font-size: 1.2rem;
+}
+
+.sidebar .nav-link:hover {
+  color: #fff;
+  background-color: #374151;
+}
+
+.sidebar .nav-link.active {
+  background-color: var(--primary-color);
+  color: #fff!important;
+}
+
+.sidebar .collapse .nav-link.active {
+  background-color: #4267a3;
+  color: #fff !important;
+  border-radius: 0.375rem;
+}
+
+/* Submenús */
+.sidebar .collapse .nav-link {
+  color: #cbd5e1;
+}
+.sidebar .nav-link.fontSizeSubMenu{
+  font-size: 0.80rem;
+}
+
+.sidebar .collapse .nav-link:hover {
+  color: #fff;
+  background-color: #4b5563;
+}
+
+/* Animación de submenú */
+.collapse {
+  transition: height 0.3s ease;
+}
+
+/* Flecha de expandir/colapsar */
+.sidebar .expand-icon {
+  transition: transform 0.3s ease;
+  margin-left: auto; /* empuja la flecha a la derecha */
+}
+
+.sidebar .nav-link[aria-expanded="true"] .expand-icon {
+  transform: rotate(180deg);
+}
+
+/* Main */
+.main-content {
+  flex: 1;
+  margin-left: 270px; /* espacio para el sidebar fijo */
+}
+
+/* Botones */
+.btn {
+  border-radius: 0.375rem;
+  padding: 0.625rem 1.25rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+.btn-success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+.btn-success:hover {
+  background-color: #16a34a;
+  border-color: #16a34a;
+}
+.btn-outline-danger {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+.btn-outline-danger:hover {
+  background-color: var(--danger-color);
+  color: var(--white);
+}
+.btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  color: var(--white);
+}
+
+/* Formularios */
+.form-control,
+.form-select {
+  border-radius: 0.375rem;
+  padding: 5px 35px 5px 10px;
+  border: 1px solid #d1d5db;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(3, 153, 253, 0.2);
+  outline: none;
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+  transition: box-shadow 0.3s ease;
+}
+.card:hover {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+.card-title {
+  color: #111827;
+  font-weight: 500;
+}
+
+/* Tablas */
+.table {
+  --bs-table-hover-bg: #f3f4f6;
+}
+
+/* Breadcrumb */
+.breadcrumb-item a {
+  transition: color 0.2s ease;
+}
+.breadcrumb-item a:hover {
+  color: var(--primary-color) !important;
+}
