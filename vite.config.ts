@@ -1,9 +1,31 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+
+const fullReloadTargets = [
+  '/src/components/',
+  '/src/pages/',
+  '/src/functions/',
+]
+
+const forceFullReloadForAdminFrontend = (): Plugin => ({
+  name: 'force-full-reload-for-admin-frontend',
+  apply: 'serve',
+  handleHotUpdate({ file, server }) {
+    const normalizedFile = file.replace(/\\/g, '/')
+    const shouldReload = fullReloadTargets.some((target) =>
+      normalizedFile.includes(target),
+    )
+
+    if (!shouldReload) return
+
+    server.ws.send({ type: 'full-reload' })
+    return []
+  },
+})
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), forceFullReloadForAdminFrontend()],
   build: {
     rollupOptions: {
       input: {

@@ -39,12 +39,21 @@ export default function Administradores() {
     { name: "correo", label: "Email", type: "email", required: true },
     {
       name: "contrasena",
-      label: "Contraseña",
+      label: "Contrasena",
       type: "password",
-      placeholder: "********",
-      required: true,
+      placeholder: editing ? "Dejar vacio para conservar" : "********",
+      required: !editing,
     },
   ];
+
+  const initialValues = editing
+    ? {
+        nombre: editing.nombre || "",
+        apellido: editing.apellido || "",
+        correo: editing.correo || "",
+        contrasena: "",
+      }
+    : {};
 
   const handleSubmit = async (values) => {
     const payload = {
@@ -52,9 +61,12 @@ export default function Administradores() {
       nombre: values.nombre,
       apellido: values.apellido || "",
       correo: values.correo,
-      contrasena: values.contrasena,
-      privilegios: editing?.privilegios || "admin",
+      privilegios: editing?.privilegios || "B",
     };
+
+    if (values.contrasena) {
+      payload.contrasena = values.contrasena;
+    }
 
     try {
       if (editing) {
@@ -72,7 +84,7 @@ export default function Administradores() {
   };
 
   const handleDelete = async (row) => {
-    const result = await showAlert("delete", "¿Deseas eliminar este administrador?");
+    const result = await showAlert("delete", "Deseas eliminar este administrador?");
     if (!result.isConfirmed) return;
 
     try {
@@ -91,7 +103,7 @@ export default function Administradores() {
           title={editing ? "Editar Administrador" : "Registro de Administrador"}
           fields={fields}
           columns={2}
-          initialValues={editing || {}}
+          initialValues={initialValues}
           submitLabel={editing ? "Actualizar" : "Guardar"}
           onCancel={editing ? () => setEditing(null) : null}
           onSubmit={handleSubmit}
@@ -107,8 +119,18 @@ export default function Administradores() {
             <ActionButtons
               row={row}
               actions={[
-                { label: "Editar", icon: "edit", className: "btn-outline-primary", onClick: () => setEditing(row) },
-                { label: "Eliminar", icon: "delete", className: "btn-outline-danger", onClick: () => handleDelete(row) },
+                {
+                  label: "Editar",
+                  icon: "edit",
+                  className: "btn-outline-primary px-2 py-1",
+                  onClick: () => setEditing(row),
+                },
+                {
+                  label: "Eliminar",
+                  icon: "delete",
+                  className: "btn-outline-danger px-2 py-1",
+                  onClick: () => handleDelete(row),
+                },
               ]}
             />
           )}

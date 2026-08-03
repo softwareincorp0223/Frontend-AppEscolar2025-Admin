@@ -1,10 +1,6 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "material-icons/iconfont/material-icons.css";
-import "datatables.net-bs5/css/dataTables.bootstrap5.min.css";
-import $ from "jquery";
-import "datatables.net-bs5";
-
 import "../index.css";
 
 export default function Table({
@@ -16,39 +12,11 @@ export default function Table({
   headerButtons,
   loading = false,
 }) {
-  const selectedIdsRef = useRef(new Set()); // 🔹 Mantiene los IDs seleccionados sin causar renders
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+  const selectedIdsRef = useRef(new Set());
 
-  useEffect(() => {
-    if (loading) return undefined;
-
-    const languageConfig = {
-      url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json",
-    };
-
-    // Destruye instancia previa si existe
-    if ($.fn.DataTable.isDataTable(`#${id}`)) {
-      $(`#${id}`).DataTable().destroy();
-    }
-
-    // Inicializa DataTable
-    const table = $(`#${id}`).DataTable({
-      language: languageConfig,
-      autoWidth: false,
-    });
-
-    // Forzar altura uniforme en cada renderizado
-    table.on("draw", function () {
-      $(`#${id} tbody tr`).css("height", "48px");
-    });
-
-    return () => {
-      if ($.fn.DataTable.isDataTable(`#${id}`)) {
-        $(`#${id}`).DataTable().destroy();
-      }
-    };
-  }, [id, data, loading]);
-
-  // Normaliza nombres de las columnas
   const normalizeKey = (str) =>
     str
       .toLowerCase()
@@ -56,33 +24,71 @@ export default function Table({
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/\s+/g, "_");
 
-  // 🔹 Maneja selección de checkboxes sin re-renderizar
+  const filteredData = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return data;
+
+    return data.filter((row) =>
+      columns.some((col) => {
+        if (col.toLowerCase() === "input") return false;
+        const value = row[normalizeKey(col)];
+        return String(value ?? "").toLowerCase().includes(term);
+      })
+    );
+  }, [columns, data, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / pageSize));
+
+  const visiblePages = useMemo(() => {
+    const pages = new Set([1, totalPages, currentPage]);
+
+    if (currentPage > 1) pages.add(currentPage - 1);
+    if (currentPage < totalPages) pages.add(currentPage + 1);
+
+    return Array.from(pages).sort((a, b) => a - b);
+  }, [currentPage, totalPages]);
+
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredData.slice(start, start + pageSize);
+  }, [currentPage, filteredData]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, data]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const handleSelect = (checked, idValue) => {
     if (checked) {
       selectedIdsRef.current.add(idValue);
     } else {
       selectedIdsRef.current.delete(idValue);
     }
-    console.log("Seleccionados:", Array.from(selectedIdsRef.current));
   };
 
   return (
     <div className="card mb-3">
       <div className="card-body p-4 p-lg-5">
-        {/* Encabezado con título y botones */}
-        <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
           <h2 className="card-title fs-5 mb-0">{title}</h2>
-          <div className="d-flex gap-2">{headerButtons && headerButtons()}</div>
+          <div className="d-flex flex-wrap align-items-center gap-2">
+            <input
+              className="form-control form-control-sm"
+              type="search"
+              placeholder="Buscar..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              style={{ width: 220 }}
+            />
+            {headerButtons && headerButtons()}
+          </div>
         </div>
 
-        {loading ? (
-          <div className="d-flex flex-column align-items-center justify-content-center py-5">
-            <div className="spinner-border text-primary mb-3" role="status">
-              <span className="visually-hidden">Cargando...</span>
-            </div>
-            <span className="text-secondary">Cargando datos...</span>
-          </div>
-        ) : (
         <div className="table-responsive">
           <table
             id={id}
@@ -92,20 +98,14 @@ export default function Table({
               <tr>
                 {columns.map((col, i) => (
                   <th key={i} className="fw-medium text-secondary">
-                    {/* Si la columna es Input, agregamos un checkbox general para seleccionar todos */}
                     {col.toLowerCase() === "input" ? (
                       <input
                         type="checkbox"
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          const checkboxes = document.querySelectorAll(
-                            `#${id} tbody input[type="checkbox"]`
+                        onChange={(event) => {
+                          const checked = event.target.checked;
+                          paginatedData.forEach((row) =>
+                            handleSelect(checked, row.mensaje_id)
                           );
-                          checkboxes.forEach((cb) => {
-                            cb.checked = checked;
-                            const val = cb.getAttribute("data-id");
-                            handleSelect(checked, val);
-                          });
                         }}
                       />
                     ) : (
@@ -120,42 +120,132 @@ export default function Table({
             </thead>
 
             <tbody>
-              {data.map((row, idx) => (
-                <tr key={idx}>
-                  {columns.map((col, i) => {
-                    const key = normalizeKey(col);
+              {loading ? (
+                <tr>
+                  <td
+                    className="py-5 text-center text-secondary"
+                    colSpan={columns.length + (renderActions ? 1 : 0)}
+                  >
+                    <div className="spinner-border text-primary me-2" role="status">
+                      <span className="visually-hidden">Cargando...</span>
+                    </div>
+                    Cargando datos...
+                  </td>
+                </tr>
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td
+                    className="py-4 text-center text-secondary"
+                    colSpan={columns.length + (renderActions ? 1 : 0)}
+                  >
+                    Sin datos para mostrar
+                  </td>
+                </tr>
+              ) : (
+                paginatedData.map((row, idx) => (
+                  <tr
+                    key={
+                      row.id ||
+                      row.id_instituto ||
+                      row.id_usuario ||
+                      row.id_padre ||
+                      row.id_admin ||
+                      idx
+                    }
+                  >
+                    {columns.map((col, i) => {
+                      const key = normalizeKey(col);
 
-                    // Si la columna es Input → mostramos checkbox
-                    if (col.toLowerCase() === "input") {
+                      if (col.toLowerCase() === "input") {
+                        return (
+                          <td key={i} className="py-3 text-center">
+                            <input
+                              type="checkbox"
+                              data-id={row.mensaje_id}
+                              onChange={(event) =>
+                                handleSelect(event.target.checked, row.mensaje_id)
+                              }
+                            />
+                          </td>
+                        );
+                      }
+
                       return (
-                        <td key={i} className="py-3 text-center">
-                          <input
-                            type="checkbox"
-                            data-id={row.mensaje_id}
-                            onChange={(e) =>
-                              handleSelect(e.target.checked, row.mensaje_id)
-                            }
-                          />
+                        <td key={i} className="py-3">
+                          {row[key]}
                         </td>
                       );
-                    }
+                    })}
 
-                    // En caso normal → renderiza el texto
-                    return (
-                      <td key={i} className="py-3">
-                        {row[key]}
-                      </td>
-                    );
-                  })}
-
-                  {renderActions && (
-                    <td className="text-end py-3">{renderActions(row)}</td>
-                  )}
-                </tr>
-              ))}
+                    {renderActions && (
+                      <td className="text-end py-3">{renderActions(row)}</td>
+                    )}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        {!loading && filteredData.length > 0 && (
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-3">
+            <span className="text-secondary small">
+              Mostrando {(currentPage - 1) * pageSize + 1} a{" "}
+              {Math.min(currentPage * pageSize, filteredData.length)} de{" "}
+              {filteredData.length} registros
+            </span>
+
+            <nav aria-label={`Paginacion ${title}`}>
+              <ul className="pagination pagination-sm mb-0 flex-wrap justify-content-end">
+                <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <button
+                    className="page-link"
+                    type="button"
+                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  >
+                    Anterior
+                  </button>
+                </li>
+
+                {visiblePages.map((page, index) => (
+                  <React.Fragment key={page}>
+                    {index > 0 && page - visiblePages[index - 1] > 1 && (
+                      <li className="page-item disabled">
+                        <span className="page-link">...</span>
+                      </li>
+                    )}
+                    <li
+                      className={`page-item ${page === currentPage ? "active" : ""}`}
+                    >
+                      <button
+                        className="page-link"
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </button>
+                    </li>
+                  </React.Fragment>
+                ))}
+
+                <li
+                  className={`page-item ${
+                    currentPage === totalPages ? "disabled" : ""
+                  }`}
+                >
+                  <button
+                    className="page-link"
+                    type="button"
+                    onClick={() =>
+                      setCurrentPage((page) => Math.min(totalPages, page + 1))
+                    }
+                  >
+                    Siguiente
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
         )}
       </div>
     </div>

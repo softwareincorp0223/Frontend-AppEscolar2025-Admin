@@ -175,6 +175,20 @@ body {
   outline: none;
 }
 
+.institucion-description-editor {
+  margin-bottom: 2rem;
+}
+
+.institucion-description-editor .ql-container {
+  height: 180px;
+  overflow: hidden;
+}
+
+.institucion-description-editor .ql-editor {
+  height: 180px;
+  overflow-y: auto;
+}
+
 /* Cards */
 .card {
   border: none;

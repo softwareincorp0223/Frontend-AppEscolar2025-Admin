@@ -5,7 +5,8 @@ const ADMIN_TOKEN_KEY = "adminToken";
 const ADMIN_USER_KEY = "adminUser";
 
 export const generateId = (length = 10) => {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let id = "";
   for (let i = 0; i < length; i += 1) {
     id += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -55,6 +56,12 @@ const authHeaders = () => {
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
+const requestHeaders = (payload) => {
+  const headers = authHeaders();
+  if (payload instanceof FormData) return headers;
+  return { ...headers, "Content-Type": "application/json" };
+};
+
 const parseError = (error) => {
   const data = error.response?.data;
   if (Array.isArray(data?.errors)) return data.errors.join("\n");
@@ -90,9 +97,13 @@ export const loginAdmin = async ({ correo, contrasena }) => {
 
 export const apiPost = async (endpoint, payload) => {
   try {
-    const response = await axiosInstance.post(`${API_PREFIX}${endpoint}`, payload, {
-      headers: authHeaders(),
-    });
+    const response = await axiosInstance.post(
+      `${API_PREFIX}${endpoint}`,
+      payload,
+      {
+        headers: requestHeaders(payload),
+      },
+    );
     return response.data;
   } catch (error) {
     throw new Error(parseError(error));
@@ -101,9 +112,13 @@ export const apiPost = async (endpoint, payload) => {
 
 export const apiPut = async (endpoint, payload) => {
   try {
-    const response = await axiosInstance.put(`${API_PREFIX}${endpoint}`, payload, {
-      headers: authHeaders(),
-    });
+    const response = await axiosInstance.put(
+      `${API_PREFIX}${endpoint}`,
+      payload,
+      {
+        headers: requestHeaders(payload),
+      },
+    );
     return response.data;
   } catch (error) {
     throw new Error(parseError(error));

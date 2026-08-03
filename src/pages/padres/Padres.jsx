@@ -128,8 +128,8 @@ export default function Padres() {
             <ActionButtons
               row={row}
               actions={[
-                { label: "Editar", icon: "edit", className: "btn-outline-primary", onClick: () => setEditing(row) },
-                { label: "Eliminar", icon: "delete", className: "btn-outline-danger", onClick: () => handleDelete(row) },
+                { label: "Editar", icon: "edit", className: "btn-outline-primary px-2 py-1", onClick: () => setEditing(row) },
+                { label: "Eliminar", icon: "delete", className: "btn-outline-danger px-2 py-1", onClick: () => handleDelete(row) },
               ]}
             />
           )}
