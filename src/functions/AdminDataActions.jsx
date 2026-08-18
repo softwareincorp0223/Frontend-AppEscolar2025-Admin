@@ -69,6 +69,14 @@ const parseError = (error) => {
   return data?.details || data?.error || data?.message || error.message;
 };
 
+const parseLoginError = (error) => {
+  if (error.response?.status === 401 || error.response?.status === 404) {
+    return "Correo o contrasena incorrectos";
+  }
+
+  return "No se pudo iniciar sesion";
+};
+
 export const apiGet = async (endpoint) => {
   try {
     const response = await axiosInstance.get(`${API_PREFIX}${endpoint}`, {
@@ -76,7 +84,7 @@ export const apiGet = async (endpoint) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error(parseError(error));
+    throw new Error(parseLoginError(error));
   }
 };
 

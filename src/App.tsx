@@ -23,6 +23,7 @@ export default function App() {
 
     try {
       await loginAdmin({ correo, contrasena });
+      await showAlert("success", "Sesion iniciada correctamente");
       window.location.href = "/src/pages/escuelas-registradas/index.html";
     } catch (error) {
       showAlert(
@@ -91,15 +92,6 @@ export default function App() {
               </button>
             </form>
 
-            <p className="mt-3 small mb-0 text-muted">
-              ¿Olvidaste tu contraseña?{" "}
-              <a
-                href="recuperar-password.html"
-                className="fw-bold text-danger text-decoration-none"
-              >
-                Recuperar
-              </a>
-            </p>
           </div>
         </div>
       </div>

@@ -93,6 +93,14 @@ export default function ActionButtons({ actions = [], row }) {
             icon: action.icon,
             className: action.className || "btn-outline-secondary",
             onClick: action.onClick || (() => {}),
+            disabled:
+              typeof action.disabled === "function"
+                ? action.disabled(row)
+                : Boolean(action.disabled),
+            title:
+              typeof action.title === "function"
+                ? action.title(row)
+                : action.title,
           };
         }
 
@@ -102,6 +110,8 @@ export default function ActionButtons({ actions = [], row }) {
           <button
             key={idx}
             className={`btn btn-sm ${btn.className} me-2`}
+            disabled={btn.disabled}
+            title={btn.title}
             onClick={() => btn.onClick(row.id ?? row)}
           >
             {btn.icon && (
